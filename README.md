@@ -17,13 +17,11 @@
 pip install InquirerPy
 ```
 
-https://github.com/bshall/hubert/releases/download/v0.1/hubert-soft-0d54a1f4.pt
-
+https://github.com/bshall/hubert/releases/download/v0.1/hubert-soft-0d54a1f4.pt  
 hubert フォルダに入れます。これは従来と同じです。
 
-https://huggingface.co/innnky/sovits_pretrained/resolve/main/G_0.pth
-https://huggingface.co/innnky/sovits_pretrained/resolve/main/D_0.pth
-
+https://huggingface.co/innnky/sovits_pretrained/resolve/main/G_0.pth  
+https://huggingface.co/innnky/sovits_pretrained/resolve/main/D_0.pth  
 pretrained_models という名前のフォルダを作ってそこに入れます。従来と違います。
 
 ### 学習
