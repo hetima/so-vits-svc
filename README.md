@@ -7,10 +7,12 @@
 ## Z版
 
 設定ファイルなどをモデルごとに分離して管理しやすくし、複数のモデルを並行して学習できるようにしました。生成コマンドも使いやすくしています。
+
 - z_inference_main.py
 - z_init_project.py
 - z_preprocess.py
 - z_train.py
+
 の4ファイルが追加されています。InquirerPy が必要です。
 
 ```
