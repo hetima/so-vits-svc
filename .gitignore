@@ -3,6 +3,7 @@ checkpoints
 dataset
 projects
 results
+pretrained_models
 *.wav
 *.pt
 logs/*
