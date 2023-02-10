@@ -1,0 +1,8 @@
+__pycache__
+checkpoints
+dataset
+projects
+results
+*.wav
+*.pt
+logs/*
