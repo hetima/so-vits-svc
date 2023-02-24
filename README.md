@@ -2,7 +2,8 @@
 [オリジナルのREADMEはこちらです](README_ORIG.md)
 
 # About this fork
-後述のZ版4ファイルが追加されています。requirements.txt のバージョンが本家とちょっと違います。Windows の Python 3.10 の venv で動作確認しています。
+後述のZ版4ファイルが追加されています。requirements.txt のバージョンが本家とちょっと違います。Windows の Python 3.10 の venv で動作確認しています。  
+4.0(44.1khz)対応版は[こちらです](https://github.com/hetima/so-vits-svc/tree/4.0)。 [README_Z_J.md](https://github.com/hetima/so-vits-svc/blob/4.0/README_Z_J.md) を参照してください。
 
 ## Z版
 
