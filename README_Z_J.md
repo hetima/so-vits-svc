@@ -45,7 +45,7 @@ projects/model_name/raw/speaker_name フォルダが作成されているので�
 python z_preprocess.py
 ```
 
-実行するとプロジェクトの一覧を表示するのでプリプロセスしたいものを選択してください。選択すると projects/model_name 内の dataset/ に 32kHz 変換された wav が生成され、解析もされ、config.json と filelists/ も生成されます。従来の resample.py、preprocess_flist_config.py、preprocess_hubert_f0.py をまとめて実行するようなものです。
+実行するとプロジェクトの一覧を表示するのでプリプロセスしたいものを選択してください。選択すると projects/model_name 内の dataset/ に 44.1kHz に変換された wav が生成され、解析もされ、config.json と filelists/ も生成されます。従来の resample.py、preprocess_flist_config.py、preprocess_hubert_f0.py をまとめて実行するようなものです。
 
 config.json の `batch_size` は 6 になっています。VRAM12GB あれば 12 くらいいけそうです。`eval_interval` は中間結果ファイルを作る間隔です。
 
