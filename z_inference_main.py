@@ -60,6 +60,13 @@ if __name__ == "__main__":
         print("file not found")
         exit(0)
 
+    # other config
+    tran = 0  # 音高调整，支持正负（半音）-5
+    cluster_infer_ratio = 0  # 0-1,
+    auto_predict_f0 = False  #语音转换自动预测音高，转换歌声时不要打开这个会严重跑调
+    noice_scale = 0.4  #噪音级别，会影响咬字和音质，较为玄学
+    pad_seconds = 0.5  #推理音频pad秒数，由于未知原因开头结尾会有异响，pad一小段静音段后就不会出现
+
 
 
     import io
@@ -77,15 +84,9 @@ if __name__ == "__main__":
     svc_model = Svc(model_path, config_path)
     infer_tool.mkdir(["results"])
 
-    # 支持多个wav文件，放在raw文件夹下
     clean_name = os.path.splitext(os.path.basename(src_path))[0]
     wav_format = 'wav'  # 音频输出格式
 
-    tran = 0  # 音高调整，支持正负（半音）-5
-    cluster_infer_ratio=0 # 0-1,
-    auto_predict_f0=False
-    noice_scale=0.4
-    
     raw_audio_path = src_path
 
     #convert to wav
@@ -100,16 +101,27 @@ if __name__ == "__main__":
     for (slice_tag, data) in audio_data:
         print(f'#=====segment start, {round(len(data) / audio_sr, 3)}s======')
         length = int(np.ceil(len(data) / audio_sr * svc_model.target_sample))
-        raw_path = io.BytesIO()
-        soundfile.write(raw_path, data, audio_sr, format="wav")
-        raw_path.seek(0)
+
         if slice_tag:
             print('jump empty segment')
             _audio = np.zeros(length)
         else:
-            out_audio, out_sr = svc_model.infer(spk, tran, raw_path)
+            # padd
+            pad_len = int(audio_sr * pad_seconds)
+            data = np.concatenate([np.zeros([pad_len]), data, np.zeros([pad_len])])
+            raw_path = io.BytesIO()
+            soundfile.write(raw_path, data, audio_sr, format="wav")
+            raw_path.seek(0)
+            out_audio, out_sr = svc_model.infer(spk, tran, raw_path,
+                                                cluster_infer_ratio=cluster_infer_ratio,
+                                                auto_predict_f0=auto_predict_f0,
+                                                noice_scale=noice_scale
+                                                )
             _audio = out_audio.cpu().numpy()
-        audio.extend(list(_audio))
+            pad_len = int(svc_model.target_sample * pad_seconds)
+            _audio = _audio[pad_len:-pad_len]
+
+        audio.extend(list(infer_tool.pad_array(_audio, length)))
 
     # res_path = f'./results/{clean_name}_{tran}key_{spk}.{wav_format}'
     res_path = f'./results/{spk}_{model_step}_{clean_name}.{wav_format}'
