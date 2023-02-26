@@ -1,10 +1,13 @@
 # for 4.0
+# 引数 --export_to_same_dir を付けると変換元のwavと同じフォルダに書き出す
+
 import os
 import re
 import glob
 import json
 from InquirerPy import inquirer
 from InquirerPy.validator import NumberValidator
+import argparse
 
 LOG_PATH = "./logs"
 
@@ -28,6 +31,10 @@ def select_project():
     return slct
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='sovits4 inference')
+    parser.add_argument('--export_to_same_dir', action='store_true', help='Export to the same directory as the input wav')
+    args = parser.parse_args()
 
     #model
     project = select_project()
@@ -124,5 +131,9 @@ if __name__ == "__main__":
         audio.extend(list(infer_tool.pad_array(_audio, length)))
 
     # res_path = f'./results/{clean_name}_{tran}key_{spk}.{wav_format}'
-    res_path = f'./results/{spk}_{model_step}_{clean_name}.{wav_format}'
+    if args.export_to_same_dir:
+        parent_path = os.path.dirname(src_path)
+        res_path = os.path.join(parent_path, f'{spk}_{model_step}_{clean_name}.{wav_format}')
+    else:
+        res_path = f'./results/{spk}_{model_step}_{clean_name}.{wav_format}'
     soundfile.write(res_path, audio, svc_model.target_sample, format=wav_format)
