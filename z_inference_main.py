@@ -1,5 +1,6 @@
 # for 4.0
 # 引数 --export_to_same_dir を付けると変換元のwavと同じフォルダに書き出す
+# kmeans_10000.pt が存在したら cluster_infer_ratio を訊いてくる。0にすれば使用しない
 
 import os
 import re
@@ -15,6 +16,8 @@ LOG_PATH = "./logs"
 def z_latest_checkpoint_path(dir_path, regex="G_*.pth"):
     f_list = glob.glob(os.path.join(dir_path, regex))
     f_list.sort(key=lambda f: int("".join(filter(str.isdigit, f))))
+    if len(f_list) <= 0:
+        return ""
     x = f_list[-1]
     return x
 
@@ -34,6 +37,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='sovits4 inference')
     parser.add_argument('--export_to_same_dir', action='store_true', help='Export to the same directory as the input wav')
+    # parser.add_argument('-cm', '--cluster_model_path', type=str, default="logs/44k/kmeans_10000.pt", help='聚类模型路径，如果没有训练聚类则随便填')
+    # parser.add_argument('-cr', '--cluster_infer_ratio', type=float, default=0, help='聚类方案占比，范围0-1，若没有训练聚类模型则填0即可')
+    parser.add_argument('-d', '--device', type=str, default=None, help='推理设备，None则为自动选择cpu和gpu')
     args = parser.parse_args()
 
     #model
@@ -42,6 +48,9 @@ if __name__ == "__main__":
         print("project name is empty")
         exit(0)
     model_path = z_latest_checkpoint_path(os.path.join(LOG_PATH, project), "G_*.pth")
+    if model_path == "":
+        print("model file not found")
+        exit(0)
     print(os.path.basename(model_path))
     model_step = re.sub(r"\D", "", os.path.basename(model_path))
     #speaker
@@ -59,6 +68,19 @@ if __name__ == "__main__":
     # 默认-40，嘈杂的音频可以-30，干声保留呼吸可以-50
     slice_db = inquirer.text(message="slice threshold db:", default="-40", validate=NumberValidator()).execute()
     slice_db = int(slice_db)
+
+    #cluster_model_path
+    cluster_label = ""
+    cluster_infer_ratio = 0  # 0-1.0,
+    cluster_model_path = z_latest_checkpoint_path(os.path.join(LOG_PATH, project), "kmeans_*.pt")
+    if cluster_model_path != "":
+        print("found cluster model:" + cluster_model_path)
+        cluster_infer_ratio = inquirer.text(message="cluster infer ratio(0 - 1.0):", default="0").execute()
+        cluster_label = "c" + cluster_infer_ratio
+        cluster_infer_ratio = float(cluster_infer_ratio)
+    if cluster_infer_ratio <= 0:
+        cluster_label = ""
+
     #wav file
     src_path = inquirer.filepath(message="wav file path:").execute()
     if src_path[0] == '"' or src_path[0] == "'":
@@ -69,7 +91,7 @@ if __name__ == "__main__":
 
     # other config
     tran = 0  # 音高调整，支持正负（半音）-5
-    cluster_infer_ratio = 0  # 0-1,
+
     auto_predict_f0 = False  #语音转换自动预测音高，转换歌声时不要打开这个会严重跑调
     noice_scale = 0.4  #噪音级别，会影响咬字和音质，较为玄学
     pad_seconds = 0.5  #推理音频pad秒数，由于未知原因开头结尾会有异响，pad一小段静音段后就不会出现
@@ -88,7 +110,11 @@ if __name__ == "__main__":
 
     logging.getLogger('numba').setLevel(logging.WARNING)
 
-    svc_model = Svc(model_path, config_path)
+    if cluster_model_path == '' or cluster_infer_ratio <= 0:
+        svc_model = Svc(model_path, config_path, args.device, "")
+    else:
+        svc_model = Svc(model_path, config_path, args.device, cluster_model_path)
+        print("cluster_model_path = " + cluster_model_path)
     infer_tool.mkdir(["results"])
 
     clean_name = os.path.splitext(os.path.basename(src_path))[0]
@@ -133,7 +159,7 @@ if __name__ == "__main__":
     # res_path = f'./results/{clean_name}_{tran}key_{spk}.{wav_format}'
     if args.export_to_same_dir:
         parent_path = os.path.dirname(src_path)
-        res_path = os.path.join(parent_path, f'{spk}_{model_step}_{clean_name}.{wav_format}')
+        res_path = os.path.join(parent_path, f'{spk}_{model_step}{cluster_label}_{clean_name}.{wav_format}')
     else:
-        res_path = f'./results/{spk}_{model_step}_{clean_name}.{wav_format}'
+        res_path = f'./results/{spk}_{model_step}{cluster_label}_{clean_name}.{wav_format}'
     soundfile.write(res_path, audio, svc_model.target_sample, format=wav_format)
