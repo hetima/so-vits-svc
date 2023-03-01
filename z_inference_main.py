@@ -36,11 +36,14 @@ def select_project():
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='sovits4 inference')
-    parser.add_argument('--export_to_same_dir', action='store_true', help='Export to the same directory as the input wav')
+    parser.add_argument('--export_to_same_dir', action='store_true', default=False, help='Export to the same directory as the input wav')
     # parser.add_argument('-cm', '--cluster_model_path', type=str, default="logs/44k/kmeans_10000.pt", help='聚类模型路径，如果没有训练聚类则随便填')
     # parser.add_argument('-cr', '--cluster_infer_ratio', type=float, default=0, help='聚类方案占比，范围0-1，若没有训练聚类模型则填0即可')
     parser.add_argument('-d', '--device', type=str, default=None, help='推理设备，None则为自动选择cpu和gpu')
+    parser.add_argument('-a', '--auto_predict_f0', action='store_true', default=False, help='语音转换自动预测音高，转换歌声时不要打开这个会严重跑调')
+    parser.add_argument('-ns', '--noice_scale', type=float, default=0.4, help='噪音级别，会影响咬字和音质，较为玄学')
     args = parser.parse_args()
+    filename_label = ""
 
     #model
     project = select_project()
@@ -70,16 +73,15 @@ if __name__ == "__main__":
     slice_db = int(slice_db)
 
     #cluster_model_path
-    cluster_label = ""
     cluster_infer_ratio = 0  # 0-1.0,
     cluster_model_path = z_latest_checkpoint_path(os.path.join(LOG_PATH, project), "kmeans_*.pt")
     if cluster_model_path != "":
         print("found cluster model:" + cluster_model_path)
         cluster_infer_ratio = inquirer.text(message="cluster infer ratio(0 - 1.0):", default="0").execute()
-        cluster_label = "c" + cluster_infer_ratio
+        filename_label = "c" + cluster_infer_ratio
         cluster_infer_ratio = float(cluster_infer_ratio)
     if cluster_infer_ratio <= 0:
-        cluster_label = ""
+        filename_label = ""
 
     #wav file
     src_path = inquirer.filepath(message="wav file path:").execute()
@@ -92,11 +94,12 @@ if __name__ == "__main__":
     # other config
     tran = 0  # 音高调整，支持正负（半音）-5
 
-    auto_predict_f0 = False  #语音转换自动预测音高，转换歌声时不要打开这个会严重跑调
-    noice_scale = 0.4  #噪音级别，会影响咬字和音质，较为玄学
+    auto_predict_f0 = args.auto_predict_f0  # False  #语音转换自动预测音高，转换歌声时不要打开这个会严重跑调
+    noice_scale = args.noice_scale  #0.4  #噪音级别，会影响咬字和音质，较为玄学
     pad_seconds = 0.5  #推理音频pad秒数，由于未知原因开头结尾会有异响，pad一小段静音段后就不会出现
 
-
+    if auto_predict_f0:
+        filename_label = filename_label + "a"
 
     import io
     import logging
@@ -159,7 +162,7 @@ if __name__ == "__main__":
     # res_path = f'./results/{clean_name}_{tran}key_{spk}.{wav_format}'
     if args.export_to_same_dir:
         parent_path = os.path.dirname(src_path)
-        res_path = os.path.join(parent_path, f'{spk}_{model_step}{cluster_label}_{clean_name}.{wav_format}')
+        res_path = os.path.join(parent_path, f'{spk}_{model_step}{filename_label}_{clean_name}.{wav_format}')
     else:
-        res_path = f'./results/{spk}_{model_step}{cluster_label}_{clean_name}.{wav_format}'
+        res_path = f'./results/{spk}_{model_step}{filename_label}_{clean_name}.{wav_format}'
     soundfile.write(res_path, audio, svc_model.target_sample, format=wav_format)
