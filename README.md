@@ -1,5 +1,12 @@
 # SoftVC VITS Singing Voice Conversion
 
+## 使用规约
+1. 请自行解决数据集的授权问题，任何由于使用非授权数据集进行训练造成的问题，需自行承担全部责任和一切后果，与sovits无关！
+2. 任何发布到视频平台的基于sovits制作的视频，都必须要在简介明确指明用于变声器转换的输入源歌声、音频，例如：使用他人发布的视频/音频，通过分离的人声作为输入源进行转换的，必须要给出明确的原视频、音乐链接；若使用是自己的人声，或是使用其他歌声合成引擎合成的声音作为输入源进行转换的，也必须在简介加以说明。
+3. 由输入源造成的侵权问题需自行承担全部责任和一切后果。使用其他商用歌声合成软件作为输入源时，请确保遵守该软件的使用条例，注意，许多歌声合成引擎使用条例中明确指明不可用于输入源进行转换！
+
+## update
+> 更新了4.0-v2模型，全部流程同4.0，相比4.0在部分场景下有一定提升，但也有些情况有退步，在[4.0-v2分支](https://github.com/innnky/so-vits-svc/tree/4.0-v2) 这是sovits最后一次更新 \
 
 ## 模型简介
 歌声音色转换模型，通过SoftVC内容编码器提取源音频语音特征，与F0同时输入VITS替换原本的文本输入达到歌声转换的效果。同时，更换声码器为 [NSF HiFiGAN](https://github.com/openvpi/DiffSinger/tree/refactor/modules/nsf_hifigan) 解决断音问题
@@ -121,4 +128,5 @@ python inference_main.py -m "logs/44k/G_30400.pth" -c "configs/config.json" -n "
    ### Onnx模型支持的UI
    + [MoeSS](https://github.com/NaruseMioShirakana/MoeSS)
 + 我去除了所有的训练用函数和一切复杂的转置，一行都没有保留，因为我认为只有去除了这些东西，才知道你用的是Onnx
-
++ 注意：Hubert Onnx模型请使用MoeSS提供的模型，目前无法自行导出（fairseq中Hubert有不少onnx不支持的算子和涉及到常量的东西，在导出时会报错或者导出的模型输入输出shape和结果都有问题）
+[Hubert4.0](https://huggingface.co/NaruseMioShirakana/MoeSS-SUBModel)
