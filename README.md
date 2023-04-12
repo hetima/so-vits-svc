@@ -1,7 +1,7 @@
 
 
 # About this fork
-4.0（44.1khz）の fork です。後述のZ版4ファイルが追加されています。Windows の Python 3.10 の venv で動作確認しています。
+4.0（44.1khz）の fork です。後述のZ版4ファイルが追加されています。Windows の Python 3.10 の venv で動作確認しています。付属の requirements.txt ではうまくインストールできないかもしれません。私が pip インストールした手順は [so-vits-svc を Windows ローカルで動かす](https://rentry.co/a8zt2) に書いています。上手くいかなかったら参考にしてください。
 
 ## Z版
 
