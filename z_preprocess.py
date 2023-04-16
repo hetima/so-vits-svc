@@ -232,7 +232,7 @@ def process_one(filename, hmodel):
     # 取ってくるのが面倒なので決め打ち
     sampling_rate = 44100
     hop_length = 512
-    print(sampling_rate)
+    # print(sampling_rate)
     # print(filename)
     wav, sr = librosa.load(filename, sr=sampling_rate)
     soft_path = filename + ".soft.pt"
